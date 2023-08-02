@@ -1,0 +1,19 @@
+<main class="main">
+  <div class="task-form">
+    <form method="POST" action="/add-task">
+      <input class="input" type="text" name="task" placeholder="I need to..." />
+      <button class="task-form__button button" type="submit">Create</button>
+    </form>
+    <% if (error) { %>
+    <div class="alert alert--error"><%= error %></div>
+    <% } %> <% if (showSuccess) { %>
+    <div class="alert alert--success">Task was added!</div>
+    <% } %>
+  </div>
+
+  <h2>Todo List</h2>
+
+  <% if (tasks.length === 0) { %>
+  <h3 class="no-tasks">There are no tasks.</h3>
+  <% } %> <%- include("../partials/_todo-task-list", {tasks: tasks}) %>
+</main>
