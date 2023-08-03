@@ -9,12 +9,16 @@ class TasksService {
     return this.tasks;
   }
 
-  async addTask(taskName) {
-    if (await this.taskExists(taskName)) {
-      throw new Error(`Task "${taskName}" already exists!`);
+  async addTask(taskTitle, taskDescription) {
+    if (await this.taskExists(taskTitle)) {
+      throw new Error(`Task "${taskTitle}" already exists!`);
     }
 
-    const newTask = { name: taskName, completed: false }; // Store task as an object with name and completed properties
+    const newTask = {
+      title: taskTitle,
+      description: taskDescription,
+      completed: false,
+    };
     this.tasks.push(newTask);
   }
 
@@ -23,10 +27,10 @@ class TasksService {
     return this.tasks.some((task) => task.name === taskName);
   }
 
-  async markTaskAsDone(taskName) {
-    const taskIndex = this.tasks.findIndex((t) => t.name === taskName);
+  async markTaskAsDone(taskTitle) {
+    const taskIndex = this.tasks.findIndex((t) => t.title === taskTitle);
     if (taskIndex === -1) {
-      throw new Error(`Task "${taskName}" not found.`);
+      throw new Error(`Task with title "${taskTitle}" not found.`);
     }
 
     // Update the completed property of the task
@@ -42,26 +46,26 @@ class TasksService {
     return this.completedTasks;
   }
 
-  async getTaskById(taskId) {
-    const task = this.tasks.find((t) => t.id === taskId);
+  async getTaskByTitle(taskTitle) {
+    const task = this.tasks.find((t) => t.title === taskTitle);
     if (!task) {
-      throw new Error(`Task with ID "${taskId}" not found.`);
+      throw new Error(`Task with title "${taskTitle}" not found.`);
     }
     return task;
   }
 
-  async updateTask(taskId, updatedTask) {
-    const taskIndex = this.tasks.findIndex((t) => t.id === taskId);
+  async updateTask(taskTitle, updatedTask) {
+    const taskIndex = this.tasks.findIndex((t) => t.title === taskTitle);
     if (taskIndex === -1) {
-      throw new Error(`Task with ID "${taskId}" not found.`);
+      throw new Error(`Task with title "${taskTitle}" not found.`);
     }
     this.tasks[taskIndex] = { ...this.tasks[taskIndex], ...updatedTask };
   }
 
-  async deleteTask(taskId) {
-    const taskIndex = this.tasks.findIndex((t) => t.id === taskId);
+  async deleteTask(taskTitle) {
+    const taskIndex = this.tasks.findIndex((t) => t.title === taskTitle);
     if (taskIndex === -1) {
-      throw new Error(`Task with ID "${taskId}" not found.`);
+      throw new Error(`Task with title "${taskTitle}" not found.`);
     }
     this.tasks.splice(taskIndex, 1);
   }

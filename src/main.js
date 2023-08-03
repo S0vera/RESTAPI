@@ -31,7 +31,7 @@ const validation = [
 
 // Middleware to check JWT token
 
-app.use("/", routes());
+app.use(routes());
 // User registration route
 app.post("/api/register", validation, (req, res) => {
   const { email, password, firstName, lastName } = req.body;

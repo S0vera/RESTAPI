@@ -6,7 +6,7 @@ const doneRoute = require("./done");
 const apiTasks = require("./apiTasks");
 module.exports = (params) => {
   router.use("/done", doneRoute(params));
-  router.use("/api/tasks", apiTasks(params));
+  router.use(apiTasks(params));
 
   router.get("/", async (request, response) => {
     // Handle GET request for rendering the form and the list of tasks.

@@ -11,7 +11,7 @@ module.exports = (params) => {
 
     try {
       // Add the new task to the user's TODO list
-      await tasksService.addTask(email, title, description);
+      await tasksService.addTask(title, description, email);
       res.status(200).json({ message: "Task added successfully" });
     } catch (error) {
       console.error(error);
@@ -66,19 +66,15 @@ module.exports = (params) => {
   });
 
   // Endpoint to update a task
-  router.put("/api/tasks/:taskId", authenticateToken, async (req, res) => {
-    const email = req.user.email;
-    const taskId = req.params.taskId;
-    const { title, description } = req.body;
-
+  router.put("/api/tasks/:taskTitle", async (req, res) => {
     try {
-      // Update the specific task in the user's TODO list based on taskId
-      const updatedTask = { title, description };
-      await tasksService.updateTask(email, taskId, updatedTask);
-      res.status(200).json({ message: "Task updated successfully" });
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ error: "Failed to update the task" });
+      const updatedTask = await tasksService.updateTask(
+        req.params.taskTitle,
+        req.body
+      );
+      res.status(200).json(updatedTask);
+    } catch (err) {
+      res.status(404).json({ error: err.message });
     }
   });
 
@@ -98,30 +94,14 @@ module.exports = (params) => {
   });
 
   // Endpoint to mark a task as "done"
-  router.post(
-    "/api/tasks/:taskId/done",
-    authenticateToken,
-    async (req, res) => {
-      const { taskId } = req.params;
-      const email = req.user.email;
-
-      try {
-        // Get the specific task from the user's TODO list based on taskId
-        const task = await tasksService.getTaskById(email, taskId);
-        if (!task) {
-          return res.status(404).json({ error: "Task not found" });
-        }
-
-        // Mark the task as "done" in the TasksService
-        await tasksService.markTaskAsDone(task.name);
-
-        res.status(200).json({ message: "Task marked as done" });
-      } catch (error) {
-        console.error(error);
-        res.status(500).json({ error: "Failed to mark the task as done" });
-      }
+  router.post("/api/tasks/:taskTitle/done", async (req, res) => {
+    try {
+      await tasksService.markTaskAsDone(req.params.taskTitle);
+      res.status(200).json({ success: "Task marked as done" });
+    } catch (err) {
+      res.status(404).json({ error: err.message });
     }
-  );
+  });
 
   return router;
 };
