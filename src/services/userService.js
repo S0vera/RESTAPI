@@ -1,20 +1,22 @@
+const User = require("../models/userModel");
+
 class Users {
-  constructor() {
-    this.users = [];
-  }
-  createUser(email, firstName, lastName, password) {
-    this.email = email;
-    this.firstName = firstName;
-    this.lastName = lastName;
-    this.password = password;
-  }
-
-  addUser(user) {
-    this.users.push(user);
+  async createUser(email, firstName, lastName, password) {
+    const user = new User({
+      email,
+      firstName,
+      lastName,
+      password,
+    });
+    await user.save();
   }
 
-  getUserByEmail(email) {
-    return this.users.find((user) => user.email === email);
+  async addUser(user) {
+    await User.create(user);
+  }
+
+  async getUserByEmail(email) {
+    return await User.findOne({ email });
   }
 }
 

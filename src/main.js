@@ -2,11 +2,20 @@ const express = require("express");
 const makeStoppable = require("stoppable");
 const http = require("http");
 const { check, validationResult } = require("express-validator");
-const Users = require("./services/userService");
+const Users = require("./models/userModel");
 const jwt = require("jsonwebtoken");
 const authenticateToken = require("./services/authMiddleware");
 const routes = require("../routes");
 const app = express();
+const mongoose = require("mongoose");
+
+mongoose
+  .connect("mongodb://localhost:37017/your_database_name", {
+    useNewUrlParser: true,
+    useUnifiedTopology: true,
+  })
+  .then(() => console.log("Connected to MongoDB"))
+  .catch((err) => console.error("Connection error", err));
 
 const server = makeStoppable(http.createServer(app));
 app.use("/assets", express.static(__dirname + "/assets"));
@@ -33,51 +42,66 @@ const validation = [
 
 app.use(routes());
 // User registration route
-app.post("/api/register", validation, (req, res) => {
+app.post("/api/register", validation, async (req, res) => {
   const { email, password, firstName, lastName } = req.body;
-  // Check if a user with the same email already exists
-  const existingUser = Users.getUserByEmail(email);
-  if (existingUser) {
-    return res
-      .status(400)
-      .json({ error: "User with this email already exists" });
+
+  try {
+    // Check if a user with the same email already exists
+    const existingUser = await Users.findOne({ email });
+    if (existingUser) {
+      return res
+        .status(400)
+        .json({ error: "User with this email already exists" });
+    }
+
+    // Create a new user object
+    const newUser = new Users({
+      email,
+      password, // Note: You should hash the password before saving it
+      firstName,
+      lastName,
+    });
+
+    // Save the new user to the database
+    await newUser.save();
+
+    // Return a success response
+    res.status(200).json({ message: "User registered successfully" });
+  } catch (error) {
+    console.error(error);
+    res
+      .status(500)
+      .json({ error: "An error occurred while registering the user" });
   }
-
-  // Create a new user object
-  const newUser = {
-    email,
-    password,
-    firstName,
-    lastName,
-  };
-
-  // Add the new user to the users list
-  Users.addUser(newUser);
-
-  // Return a success response
-  res.status(200).json({ message: "User registered successfully" });
 });
-app.post("/api/login", validation, (req, res) => {
+
+app.post("/api/login", validation, async (req, res) => {
   const { email, password } = req.body;
 
-  // Check if a user with the provided email exists
-  const existingUser = Users.getUserByEmail(email);
-  if (!existingUser) {
-    return res.status(401).json({ error: "Invalid credentials" });
+  try {
+    // Check if a user with the provided email exists
+    const existingUser = await Users.findOne({ email });
+    if (!existingUser) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // Check if the provided password matches the stored password
+    // Note: You should use a hashing library like bcrypt to compare hashed passwords
+    if (existingUser.password !== password) {
+      return res.status(401).json({ error: "Invalid credentials" });
+    }
+
+    // If the user exists and the password is correct, create a JWT token
+    const token = jwt.sign({ email: existingUser.email }, SECRET_KEY, {
+      expiresIn: "24h", // Token will expire in 24 hours
+    });
+
+    // Return the token as a response
+    res.status(200).json({ token });
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ error: "An error occurred while logging in" });
   }
-
-  // Check if the provided password matches the stored password
-  if (existingUser.password !== password) {
-    return res.status(401).json({ error: "Invalid credentials" });
-  }
-
-  // If the user exists and the password is correct, create a JWT token
-  const token = jwt.sign({ email: existingUser.email }, SECRET_KEY, {
-    expiresIn: "24h", // Token will expire in 1 hour
-  });
-  // Return the token as a response
-
-  res.status(200).json({ token });
 });
 
 module.exports = () => {

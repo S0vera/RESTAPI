@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const tasksService = require("../src/services/taskService");
+const Task = require("../src/models/taskModel");
 
 const doneRoute = require("./done");
 const apiTasks = require("./apiTasks");
@@ -9,23 +10,17 @@ module.exports = (params) => {
   router.use(apiTasks(params));
 
   router.get("/", async (request, response) => {
-    // Handle GET request for rendering the form and the list of tasks.
     try {
-      const tasks = await tasksService.getAllTasks();
-      console.log("Tasks retrieved from service:", tasks);
-      const completedTasks = await tasksService.getCompletedTasks();
-      console.log(`Completed Tasks: ${JSON.stringify(completedTasks)}`);
-
-      const error = null;
-      const showSuccess = false;
+      const tasks = await Task.find({ completed: false });
+      const completedTasks = await Task.find({ completed: true });
       response.render("layout", {
         template: "index",
         tasks,
-        error,
-        showSuccess,
+        completedTasks,
+        error: null,
+        showSuccess: false,
       });
     } catch (error) {
-      // Handle any unexpected errors.
       console.error(error);
       response.sendStatus(500);
     }
