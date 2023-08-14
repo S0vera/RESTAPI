@@ -36,7 +36,9 @@
     "express-validator": "^6.15.0",
     "jsonwebtoken": "^9.0.1",
     "mongoose": "^7.4.2",
+    "mysql2": "^3.6.0",
     "nodemon": "^2.0.22",
+    "sequelize": "^6.32.1",
     "stoppable": "^1.1.0"
   }
 }

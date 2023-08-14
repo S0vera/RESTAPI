@@ -2,21 +2,22 @@ const User = require("../models/userModel");
 
 class Users {
   async createUser(email, firstName, lastName, password) {
-    const user = new User({
+    const user = await User.create({
       email,
       firstName,
       lastName,
       password,
     });
-    await user.save();
+    return user;
   }
 
   async addUser(user) {
-    await User.create(user);
+    const newUser = await User.create(user);
+    return newUser;
   }
 
   async getUserByEmail(email) {
-    return await User.findOne({ email });
+    return await User.findOne({ where: { email } });
   }
 }
 

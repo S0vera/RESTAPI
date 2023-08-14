@@ -7,15 +7,23 @@ const jwt = require("jsonwebtoken");
 const authenticateToken = require("./services/authMiddleware");
 const routes = require("../routes");
 const app = express();
-const mongoose = require("mongoose");
+const { sequelize } = require("./databases");
 
-mongoose
-  .connect("mongodb://localhost:37017/your_database_name", {
-    useNewUrlParser: true,
-    useUnifiedTopology: true,
+sequelize
+  .sync()
+  .then(() => {
+    console.log("Connected to MySQL");
   })
-  .then(() => console.log("Connected to MongoDB"))
   .catch((err) => console.error("Connection error", err));
+// const mongoose = require("mongoose");
+
+// mongoose
+//   .connect("mongodb://localhost:37017/your_database_name", {
+//     useNewUrlParser: true,
+//     useUnifiedTopology: true,
+//   })
+//   .then(() => console.log("Connected to MongoDB"))
+//   .catch((err) => console.error("Connection error", err));
 
 const server = makeStoppable(http.createServer(app));
 app.use("/assets", express.static(__dirname + "/assets"));
@@ -47,7 +55,7 @@ app.post("/api/register", validation, async (req, res) => {
 
   try {
     // Check if a user with the same email already exists
-    const existingUser = await Users.findOne({ email });
+    const existingUser = await Users.findOne({ where: { email } });
     if (existingUser) {
       return res
         .status(400)
@@ -55,15 +63,12 @@ app.post("/api/register", validation, async (req, res) => {
     }
 
     // Create a new user object
-    const newUser = new Users({
+    const newUser = await Users.create({
       email,
       password, // Note: You should hash the password before saving it
       firstName,
       lastName,
     });
-
-    // Save the new user to the database
-    await newUser.save();
 
     // Return a success response
     res.status(200).json({ message: "User registered successfully" });
@@ -80,7 +85,7 @@ app.post("/api/login", validation, async (req, res) => {
 
   try {
     // Check if a user with the provided email exists
-    const existingUser = await Users.findOne({ email });
+    const existingUser = await Users.findOne({ where: { email } });
     if (!existingUser) {
       return res.status(401).json({ error: "Invalid credentials" });
     }

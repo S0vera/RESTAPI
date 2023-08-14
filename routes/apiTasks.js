@@ -22,7 +22,7 @@ module.exports = (params) => {
   // Endpoint to get all tasks
   router.get("/api/tasks", authenticateToken, async (req, res) => {
     try {
-      const tasks = await Task.find({ completed: false });
+      const tasks = await tasksService.getAllTasks({ completed: false });
       res.status(200).json(tasks);
     } catch (error) {
       console.error(error);
